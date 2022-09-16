@@ -1,0 +1,56 @@
+= GraalVM WASM in Clojure
+
+* https://www.graalvm.org/22.2/reference-manual/wasm/
+* #GraalVM-WASM Slack channel
+* https://github.com/oracle/graal/tree/master/wasm
+* https://jameshfisher.com/2017/08/28/c-extern-function/
+
+
+You can run the full example with all the tooling using Docker.
+
+It's easiest to test things work.
+
+.Setup tooling using Docker
+[source,shell]
+--
+
+# Build the docker image with graalvm, wasm, clojure, emscripten
+docker build -t c2wasm:latest .
+
+# Run a terminal inside the container
+docker run --rm -ti c2wasm:latest bash
+
+# Inside the container, run the example
+# Run via clojure tools
+clj -J-Dpolyglot.wasm.Builtins=wasi_snapshot_preview1 \
+    -J-Dclojure.main.report=stderr \
+    -X graal-wasm.c2wasm/add :a 1 :b 5
+
+# Say hello from wasm via clojure
+clj -J-Dpolyglot.wasm.Builtins=wasi_snapshot_preview1 \
+    -J-Dclojure.main.report=stderr \
+    -X graal-wasm.c2wasm/hello
+--
+
+
+.Setup on Debian Bookworm
+[source,shell]
+--
+sudo apt-get install emscripten
+
+# version check
+emcc --version
+emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.6 ()
+Copyright (C) 2014 the Emscripten authors (see AUTHORS.txt)
+This is free and open source software under the MIT license.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+# Export c functions
+emcc -s STANDALONE_WASM -g2 -s 'EXPORTED_FUNCTIONS=["_hello","_add"]' -o c2wasm.wasm c2wasm.c
+# Run
+wasm --Builtins=wasi_snapshot_preview1 c2wasm.wasm
+
+# Run via clojure tools
+clj -J-Dpolyglot.wasm.Builtins=wasi_snapshot_preview1 -X graal-wasm.c2wasm/add :a 1 :b 5
+--

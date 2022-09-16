@@ -1,0 +1,7 @@
+.clj-kondo/.cache
+.lsp/.cache
+.nrepl-port
+.cpcache
+**/.calva/output-window/
+
+*.wasm
